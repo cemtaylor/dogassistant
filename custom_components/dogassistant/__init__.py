@@ -8,6 +8,7 @@ from pathlib import Path
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_validation as cv
 
 from .const import DOMAIN as DOMAIN
 from .const import FRONTEND_URL, PLATFORMS, SUBENTRY_TYPE_DOG
@@ -15,6 +16,8 @@ from .http import register_http_views
 from .services import async_register_services, async_unregister_services
 from .storage import DogAssistantManager
 from .websocket import async_register_websocket_commands
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 @dataclass

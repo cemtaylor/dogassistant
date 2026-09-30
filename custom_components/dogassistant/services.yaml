@@ -1,10 +1,13 @@
 log_meal:
   name: Log meal
   description: Record a meal for one dog.
-  target:
-    device:
-      integration: dogassistant
   fields:
+    device_id: &dog_device
+      name: Dog
+      required: true
+      selector:
+        device:
+          integration: dogassistant
     food:
       name: Food name
       selector: {text: {}}
@@ -25,10 +28,8 @@ log_meal:
 log_treat:
   name: Log treat
   description: Record a treat for one dog.
-  target:
-    device:
-      integration: dogassistant
   fields:
+    device_id: *dog_device
     treat:
       name: Treat name
       selector: {text: {}}
@@ -52,10 +53,14 @@ log_treat:
 start_walk:
   name: Start walk
   description: Start a walk for one or more dogs.
-  target: &dog_target
-    device:
-      integration: dogassistant
   fields:
+    device_id: &dog_devices
+      name: Dogs
+      required: true
+      selector:
+        device:
+          integration: dogassistant
+          multiple: true
     activity:
       name: Activity
       default: walk
@@ -75,8 +80,8 @@ start_walk:
 end_walk:
   name: End walk
   description: Finish the active walk for one or more dogs.
-  target: *dog_target
   fields:
+    device_id: *dog_devices
     distance:
       name: Distance
       selector: {number: {min: 0, max: 1000, step: 0.01, mode: box}}
@@ -96,8 +101,8 @@ end_walk:
 log_walk:
   name: Log completed walk
   description: Record a walk that has already finished.
-  target: *dog_target
   fields:
+    device_id: *dog_devices
     started_at:
       name: Started
       selector: {datetime: {}}
@@ -129,8 +134,8 @@ log_walk:
 log_toilet:
   name: Log toilet
   description: Record a toilet event for one dog.
-  target: *dog_target
   fields:
+    device_id: *dog_device
     kind:
       name: Type
       required: true
@@ -159,8 +164,8 @@ log_toilet:
 record_medication:
   name: Record medication
   description: Record a scheduled or as-needed dose.
-  target: *dog_target
   fields:
+    device_id: *dog_device
     medication_id:
       name: Medication ID
       required: true
@@ -190,8 +195,8 @@ record_medication:
 log_weight:
   name: Log weight
   description: Record a dog's weight.
-  target: *dog_target
   fields:
+    device_id: *dog_device
     weight:
       name: Weight
       required: true
@@ -212,8 +217,8 @@ log_weight:
 add_note:
   name: Add note
   description: Add a note to one or more dogs.
-  target: *dog_target
   fields:
+    device_id: *dog_devices
     category:
       name: Category
       default: general

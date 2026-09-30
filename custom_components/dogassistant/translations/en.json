@@ -13,6 +13,10 @@
   },
   "config_subentries": {
     "dog": {
+      "entry_type": "Dog",
+      "initiate_flow": {
+        "user": "Add dog"
+      },
       "title": "Dog",
       "step": {
         "user": {
