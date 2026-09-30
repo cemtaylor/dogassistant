@@ -14,7 +14,7 @@ STORAGE_MINOR_VERSION: Final = 3
 
 SUBENTRY_TYPE_DOG: Final = "dog"
 FRONTEND_URL: Final = f"/{DOMAIN}/dogassistant-card.js"
-FRONTEND_VERSION: Final = "0.2.8"
+FRONTEND_VERSION: Final = "0.2.9"
 
 EVENT_DATA_UPDATED: Final = f"{DOMAIN}_data_updated"
 

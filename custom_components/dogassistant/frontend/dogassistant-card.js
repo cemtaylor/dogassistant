@@ -1,4 +1,4 @@
-const DOGASSISTANT_VERSION = "0.2.8";
+const DOGASSISTANT_VERSION = "0.2.9";
 
 const esc = (value) => String(value ?? "")
   .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
@@ -555,8 +555,10 @@ class DogAssistantCardEditor extends HTMLElement {
   }
 }
 
-customElements.define("dogassistant-card", DogAssistantCard);
-customElements.define("dogassistant-card-editor", DogAssistantCardEditor);
+if (!customElements.get("dogassistant-card")) customElements.define("dogassistant-card", DogAssistantCard);
+if (!customElements.get("dogassistant-card-editor")) customElements.define("dogassistant-card-editor", DogAssistantCardEditor);
 window.customCards = window.customCards || [];
-window.customCards.push({ type: "dogassistant-card", name: "Dog Assistant", description: "Daily care, health records, and schedules for one dog", preview: true });
+if (!window.customCards.some((card) => card.type === "dogassistant-card")) {
+  window.customCards.push({ type: "dogassistant-card", name: "Dog Assistant", description: "Daily care, health records, and schedules for one dog", preview: true });
+}
 console.info(`%c DOGASSISTANT-CARD %c ${DOGASSISTANT_VERSION} `, "color:white;background:#4f7d53;font-weight:700", "color:#4f7d53;background:#edf5ed");

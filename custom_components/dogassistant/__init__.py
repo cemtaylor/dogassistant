@@ -5,13 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 
 from .const import DOMAIN as DOMAIN
-from .const import FRONTEND_URL, PLATFORMS, SUBENTRY_TYPE_DOG
+from .const import FRONTEND_URL, FRONTEND_VERSION, PLATFORMS, SUBENTRY_TYPE_DOG
 from .http import register_http_views
 from .services import async_register_services, async_unregister_services
 from .storage import DogAssistantManager
@@ -36,6 +37,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     await hass.http.async_register_static_paths(
         [StaticPathConfig(FRONTEND_URL, str(frontend_path / "dogassistant-card.js"), True)]
     )
+    add_extra_js_url(hass, f"{FRONTEND_URL}?v={FRONTEND_VERSION}")
     register_http_views(hass)
     async_register_websocket_commands(hass)
     return True
