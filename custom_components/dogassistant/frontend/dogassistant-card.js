@@ -1,4 +1,4 @@
-const DOGASSISTANT_VERSION = "0.2.9";
+const DOGASSISTANT_VERSION = "0.2.10";
 
 const esc = (value) => String(value ?? "")
   .replaceAll("&", "&amp;").replaceAll("<", "&lt;")

@@ -32,7 +32,7 @@ Copy `custom_components/dogassistant` into the `custom_components` directory in 
 
 The integration automatically loads its bundled dashboard card. After restarting Home Assistant, edit a dashboard, add a card, choose **Dog Assistant**, and select the dog in the graphical card editor.
 
-If you previously installed version 0.2.8 and manually added `/dogassistant/dogassistant-card.js` under **Settings → Dashboards → Resources**, you can remove that resource after upgrading.
+If you previously installed version 0.2.8 or 0.2.9 and manually added `/dogassistant/dogassistant-card.js` under **Settings → Dashboards → Resources**, Dog Assistant will adopt and update that resource automatically.
 
 Equivalent YAML:
 

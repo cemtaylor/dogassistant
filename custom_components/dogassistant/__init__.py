@@ -7,6 +7,8 @@ from pathlib import Path
 
 from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.components.http import StaticPathConfig
+from homeassistant.components.lovelace.const import LOVELACE_DATA
+from homeassistant.components.lovelace.resources import ResourceStorageCollection
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
@@ -37,10 +39,31 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     await hass.http.async_register_static_paths(
         [StaticPathConfig(FRONTEND_URL, str(frontend_path / "dogassistant-card.js"), True)]
     )
-    add_extra_js_url(hass, f"{FRONTEND_URL}?v={FRONTEND_VERSION}")
+    await _async_register_frontend_resource(hass)
     register_http_views(hass)
     async_register_websocket_commands(hass)
     return True
+
+
+async def _async_register_frontend_resource(hass: HomeAssistant) -> None:
+    """Register the card as an awaited Lovelace resource when possible."""
+    versioned_url = f"{FRONTEND_URL}?v={FRONTEND_VERSION}"
+    lovelace_data = hass.data.get(LOVELACE_DATA)
+    resources = lovelace_data.resources if lovelace_data else None
+
+    if not isinstance(resources, ResourceStorageCollection):
+        add_extra_js_url(hass, versioned_url)
+        return
+
+    await resources.async_get_info()
+    for item in resources.async_items():
+        if item.get("url", "").split("?", 1)[0] != FRONTEND_URL:
+            continue
+        if item["url"] != versioned_url or item.get("type") != "module":
+            await resources.async_update_item(item["id"], {"res_type": "module", "url": versioned_url})
+        return
+
+    await resources.async_create_item({"res_type": "module", "url": versioned_url})
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: DogAssistantConfigEntry) -> bool:
