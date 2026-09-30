@@ -1,0 +1,12 @@
+services:
+  homeassistant:
+    container_name: dogassistant-homeassistant
+    image: ghcr.io/home-assistant/home-assistant:stable
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+    environment:
+      TZ: Europe/London
+    volumes:
+      - ./dev-config:/config
+      - ./custom_components/dogassistant:/config/custom_components/dogassistant:ro

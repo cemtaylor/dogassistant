@@ -1,0 +1,234 @@
+log_meal:
+  name: Log meal
+  description: Record a meal for one dog.
+  target:
+    device:
+      integration: dogassistant
+  fields:
+    food:
+      name: Food name
+      selector: {text: {}}
+    amount:
+      name: Amount in grams
+      default: 200
+      selector: {number: {min: 0, max: 1000, step: 10, mode: slider}}
+    occurred_at: &occurred_at
+      name: Time
+      selector: {datetime: {}}
+    notes: &notes
+      name: Notes
+      selector: {text: {multiline: true}}
+    caregiver: &caregiver
+      name: Caregiver override
+      selector: {text: {}}
+
+log_treat:
+  name: Log treat
+  description: Record a treat for one dog.
+  target:
+    device:
+      integration: dogassistant
+  fields:
+    treat:
+      name: Treat name
+      selector: {text: {}}
+    amount:
+      name: Amount
+      default: 1
+      selector: {number: {min: 0, max: 1000, step: 1, mode: box}}
+    unit:
+      name: Unit
+      default: pieces
+      selector:
+        select:
+          custom_value: true
+          options:
+            - {value: pieces, label: Pieces}
+            - {value: g, label: Grams (g)}
+    occurred_at: *occurred_at
+    notes: *notes
+    caregiver: *caregiver
+
+start_walk:
+  name: Start walk
+  description: Start a walk for one or more dogs.
+  target: &dog_target
+    device:
+      integration: dogassistant
+  fields:
+    activity:
+      name: Activity
+      default: walk
+      selector:
+        select:
+          custom_value: true
+          options:
+            - {value: walk, label: Walk}
+            - {value: run, label: Run}
+            - {value: hike, label: Hike}
+            - {value: play, label: Play}
+            - {value: training, label: Training}
+    occurred_at: *occurred_at
+    notes: *notes
+    caregiver: *caregiver
+
+end_walk:
+  name: End walk
+  description: Finish the active walk for one or more dogs.
+  target: *dog_target
+  fields:
+    distance:
+      name: Distance
+      selector: {number: {min: 0, max: 1000, step: 0.01, mode: box}}
+    distance_unit:
+      name: Distance unit
+      default: km
+      selector:
+        select:
+          options:
+            - {value: km, label: Kilometres (km)}
+            - {value: mi, label: Miles (mi)}
+            - {value: m, label: Metres (m)}
+    occurred_at: *occurred_at
+    notes: *notes
+    caregiver: *caregiver
+
+log_walk:
+  name: Log completed walk
+  description: Record a walk that has already finished.
+  target: *dog_target
+  fields:
+    started_at:
+      name: Started
+      selector: {datetime: {}}
+    ended_at:
+      name: Ended
+      selector: {datetime: {}}
+    duration:
+      name: Duration
+      description: Minutes, used when a start time is not supplied.
+      selector: {number: {min: 0, max: 1440, step: 1, mode: box}}
+    distance:
+      name: Distance
+      selector: {number: {min: 0, max: 1000, step: 0.01, mode: box}}
+    distance_unit:
+      name: Distance unit
+      default: km
+      selector:
+        select:
+          options:
+            - {value: km, label: Kilometres (km)}
+            - {value: mi, label: Miles (mi)}
+            - {value: m, label: Metres (m)}
+    activity:
+      name: Activity
+      selector: {text: {}}
+    notes: *notes
+    caregiver: *caregiver
+
+log_toilet:
+  name: Log toilet
+  description: Record a toilet event for one dog.
+  target: *dog_target
+  fields:
+    kind:
+      name: Type
+      required: true
+      selector:
+        select:
+          options:
+            - {value: urine, label: Pee}
+            - {value: stool, label: Poo}
+            - {value: both, label: Pee & poo}
+    condition:
+      name: Condition
+      selector:
+        select:
+          custom_value: true
+          options:
+            - {value: normal, label: Normal}
+            - {value: soft, label: Soft}
+            - {value: diarrhoea, label: Diarrhoea}
+            - {value: constipated, label: Constipated}
+            - {value: blood, label: Blood}
+            - {value: mucus, label: Mucus}
+    occurred_at: *occurred_at
+    notes: *notes
+    caregiver: *caregiver
+
+record_medication:
+  name: Record medication
+  description: Record a scheduled or as-needed dose.
+  target: *dog_target
+  fields:
+    medication_id:
+      name: Medication ID
+      required: true
+      selector: {text: {}}
+    status:
+      name: Status
+      default: given
+      selector:
+        select:
+          options:
+            - {value: given, label: Given}
+            - {value: skipped, label: Skipped}
+            - {value: refused, label: Refused}
+    dose:
+      name: Dose
+      selector: {number: {min: 0, max: 100000, step: 0.01, mode: box}}
+    unit:
+      name: Unit
+      selector: {text: {}}
+    scheduled_for:
+      name: Scheduled for
+      selector: {datetime: {}}
+    occurred_at: *occurred_at
+    notes: *notes
+    caregiver: *caregiver
+
+log_weight:
+  name: Log weight
+  description: Record a dog's weight.
+  target: *dog_target
+  fields:
+    weight:
+      name: Weight
+      required: true
+      selector: {number: {min: 0, max: 500, step: 0.01, mode: box}}
+    unit:
+      name: Unit
+      default: kg
+      selector:
+        select:
+          options:
+            - {value: kg, label: Kilograms (kg)}
+            - {value: lb, label: Pounds (lb)}
+            - {value: g, label: Grams (g)}
+    occurred_at: *occurred_at
+    notes: *notes
+    caregiver: *caregiver
+
+add_note:
+  name: Add note
+  description: Add a note to one or more dogs.
+  target: *dog_target
+  fields:
+    category:
+      name: Category
+      default: general
+      selector:
+        select:
+          options:
+            - {value: general, label: General}
+            - {value: health, label: Health}
+            - {value: behaviour, label: Behaviour}
+            - {value: diet, label: Diet}
+            - {value: training, label: Training}
+            - {value: incident, label: Incident}
+    text:
+      name: Note
+      required: true
+      selector: {text: {multiline: true}}
+    occurred_at: *occurred_at
+    caregiver: *caregiver

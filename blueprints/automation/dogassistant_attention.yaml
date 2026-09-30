@@ -1,0 +1,29 @@
+blueprint:
+  name: Dog Assistant care attention
+  description: Run your chosen notification actions when a dog's care attention sensor turns on.
+  domain: automation
+  homeassistant:
+    min_version: 2026.8.0
+  input:
+    attention_sensor:
+      name: Care attention sensor
+      selector:
+        entity:
+          integration: dogassistant
+          domain: binary_sensor
+    notification_actions:
+      name: Notification actions
+      description: Actions to run. Use trigger.to_state.attributes.friendly_name in templates if desired.
+      selector:
+        action: {}
+
+triggers:
+  - trigger: state
+    entity_id: !input attention_sensor
+    to: "on"
+
+conditions: []
+
+actions: !input notification_actions
+
+mode: single

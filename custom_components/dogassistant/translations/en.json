@@ -1,0 +1,52 @@
+{
+  "title": "Dog Assistant",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Dog Assistant",
+        "description": "Create a private, local care hub for your dogs. After setup, use Add entry on the integration to add each dog."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Dog Assistant is already configured. Add dogs to the existing integration."
+    }
+  },
+  "config_subentries": {
+    "dog": {
+      "title": "Dog",
+      "step": {
+        "user": {
+          "title": "Add a dog",
+          "description": "Start with the essentials. The Dog Assistant card can manage the full profile later.",
+          "data": {
+            "name": "Name",
+            "birth_date": "Birth date",
+            "adoption_date": "Adoption date",
+            "breed": "Breed",
+            "sex": "Sex"
+          }
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "last_meal": {"name": "Last meal"},
+      "last_walk": {"name": "Last walk"},
+      "last_toilet": {"name": "Last toilet"},
+      "last_medication": {"name": "Last medication"},
+      "next_medication": {"name": "Next medication"},
+      "next_appointment": {"name": "Next appointment"},
+      "next_vaccination": {"name": "Next vaccination"},
+      "current_weight": {"name": "Current weight"},
+      "exercise_today": {"name": "Exercise today"}
+    },
+    "binary_sensor": {
+      "walk_active": {"name": "Walk active"},
+      "medication_overdue": {"name": "Medication overdue"},
+      "care_attention": {"name": "Care attention"}
+    },
+    "calendar": {"care_calendar": {"name": "Care"}},
+    "image": {"profile_image": {"name": "Profile image"}}
+  }
+}

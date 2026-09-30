@@ -1,0 +1,32 @@
+{
+  "entity": {
+    "sensor": {
+      "last_meal": {"default": "mdi:food-drumstick"},
+      "last_walk": {"default": "mdi:walk"},
+      "last_toilet": {"default": "mdi:emoticon-poop"},
+      "last_medication": {"default": "mdi:pill"},
+      "next_medication": {"default": "mdi:pill-clock"},
+      "next_appointment": {"default": "mdi:calendar-clock"},
+      "next_vaccination": {"default": "mdi:needle"},
+      "current_weight": {"default": "mdi:scale"},
+      "exercise_today": {"default": "mdi:run"}
+    },
+    "binary_sensor": {
+      "walk_active": {"default": "mdi:walk"},
+      "medication_overdue": {"default": "mdi:pill-off"},
+      "care_attention": {"default": "mdi:dog-side"}
+    },
+    "calendar": {"care_calendar": {"default": "mdi:calendar-heart"}},
+    "image": {"profile_image": {"default": "mdi:dog"}}
+  },
+  "services": {
+    "log_meal": "mdi:food-drumstick",
+    "start_walk": "mdi:walk",
+    "end_walk": "mdi:stop-circle-outline",
+    "log_walk": "mdi:map-marker-distance",
+    "log_toilet": "mdi:emoticon-poop",
+    "record_medication": "mdi:pill",
+    "log_weight": "mdi:scale",
+    "add_note": "mdi:note-plus"
+  }
+}
