@@ -159,6 +159,8 @@ class DogAssistantExportView(HomeAssistantView):
         manager = _manager(request.app["hass"])
         dog_id = request.query.get("dog_id")
         snapshot = manager.snapshot()
+        for event in snapshot["events"]:
+            event.pop("created_by_user_id", None)
         if dog_id:
             if dog_id not in snapshot["dogs"]:
                 raise web.HTTPNotFound()

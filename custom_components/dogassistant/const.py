@@ -10,16 +10,17 @@ PLATFORMS: Final = ["binary_sensor", "calendar", "image", "sensor"]
 
 STORAGE_KEY: Final = f"{DOMAIN}.data"
 STORAGE_VERSION: Final = 1
-STORAGE_MINOR_VERSION: Final = 3
+STORAGE_MINOR_VERSION: Final = 4
 
 SUBENTRY_TYPE_DOG: Final = "dog"
 FRONTEND_URL: Final = f"/{DOMAIN}/dogassistant-card.js"
-FRONTEND_VERSION: Final = "0.2.10"
+FRONTEND_VERSION: Final = "0.3.0"
 
 EVENT_DATA_UPDATED: Final = f"{DOMAIN}_data_updated"
 
 CARE_EVENT_TYPES: Final = {
     "meal",
+    "water",
     "treat",
     "walk",
     "toilet",
@@ -28,7 +29,7 @@ CARE_EVENT_TYPES: Final = {
     "note",
 }
 
-RECORD_KINDS: Final = {"medications", "vaccinations", "appointments", "foods", "treats"}
+RECORD_KINDS: Final = {"medications", "vaccinations", "appointments", "foods", "treats", "commands"}
 
 DEFAULT_SETTINGS: Final = {
     "medication_grace_minutes": 60,

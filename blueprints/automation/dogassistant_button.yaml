@@ -1,0 +1,117 @@
+blueprint:
+  name: Log Dog Assistant care from a button
+  description: >-
+    Map one physical button or press type to one Dog Assistant care action.
+    Create another automation from this blueprint for each additional button or press type.
+  domain: automation
+  homeassistant:
+    min_version: 2026.8.0
+  input:
+    button_trigger:
+      name: Button trigger
+      description: Select any trigger, including a Matter button event entity and press type.
+      selector:
+        trigger: {}
+    dog:
+      name: Dog
+      selector:
+        device:
+          integration: dogassistant
+    care_action:
+      name: Care action
+      selector:
+        select:
+          options:
+            - {value: meal, label: Meal}
+            - {value: water, label: Water refreshed}
+            - {value: pee, label: Pee}
+            - {value: poo, label: Poo}
+            - {value: treat, label: Treat}
+            - {value: start_walk, label: Start walk}
+            - {value: end_walk, label: End walk}
+    source_label:
+      name: Source label
+      description: Shown as the caregiver, for example Kitchen button or Chris.
+      default: Physical button
+      selector:
+        text: {}
+    meal_food:
+      name: Meal food or preset name
+      description: Optional. Used only for the Meal action.
+      default: ""
+      selector:
+        text: {}
+    meal_amount:
+      name: Meal amount
+      description: Optional grams. Used only for the Meal action; leave at zero to omit it.
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 10000
+          step: 1
+          unit_of_measurement: g
+
+triggers:
+  - triggers: !input button_trigger
+
+conditions: []
+
+variables:
+  care_action: !input care_action
+  source_label: !input source_label
+  meal_food: !input meal_food
+  meal_amount: !input meal_amount
+
+actions:
+  - choose:
+      - conditions: "{{ care_action == 'meal' }}"
+        sequence:
+          - action: dogassistant.log_meal
+            target:
+              device_id: !input dog
+            data: >-
+              {% set payload = dict(caregiver=source_label) %}
+              {% if meal_food %}{% set payload = dict(payload, food=meal_food) %}{% endif %}
+              {% if meal_amount | float(0) > 0 %}{% set payload = dict(payload, amount=meal_amount, unit='g') %}{% endif %}
+              {{ payload }}
+      - conditions: "{{ care_action == 'water' }}"
+        sequence:
+          - action: dogassistant.log_water
+            target:
+              device_id: !input dog
+            data:
+              caregiver: "{{ source_label }}"
+      - conditions: "{{ care_action in ['pee', 'poo'] }}"
+        sequence:
+          - action: dogassistant.log_toilet
+            target:
+              device_id: !input dog
+            data:
+              caregiver: "{{ source_label }}"
+              kind: "{{ 'urine' if care_action == 'pee' else 'stool' }}"
+      - conditions: "{{ care_action == 'treat' }}"
+        sequence:
+          - action: dogassistant.log_treat
+            target:
+              device_id: !input dog
+            data:
+              caregiver: "{{ source_label }}"
+      - conditions: "{{ care_action == 'start_walk' }}"
+        sequence:
+          - action: dogassistant.start_walk
+            target:
+              device_id: !input dog
+            data:
+              caregiver: "{{ source_label }}"
+      - conditions: "{{ care_action == 'end_walk' }}"
+        sequence:
+          - action: dogassistant.end_walk
+            target:
+              device_id: !input dog
+            data:
+              caregiver: "{{ source_label }}"
+  - delay: 2
+
+mode: single
+max_exceeded: silent

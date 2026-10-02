@@ -50,6 +50,15 @@ log_treat:
     notes: *notes
     caregiver: *caregiver
 
+log_water:
+  name: Log water refresh
+  description: Record that one dog's water bowl was refreshed.
+  fields:
+    device_id: *dog_device
+    occurred_at: *occurred_at
+    notes: *notes
+    caregiver: *caregiver
+
 start_walk:
   name: Start walk
   description: Start a walk for one or more dogs.

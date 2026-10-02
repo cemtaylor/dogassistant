@@ -62,6 +62,7 @@ def new_dog(dog_id: str, name: str, profile: dict[str, Any] | None = None) -> di
         "appointments": [],
         "foods": [],
         "treats": [],
+        "commands": [],
         "documents": [],
         "created_at": now,
         "updated_at": now,

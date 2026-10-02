@@ -109,6 +109,7 @@ async def async_setup_entry(
     manager = entry.runtime_data.manager
     timestamp_definitions = [
         ("last_meal", "last_meal", frozenset({"event:meal"}), _last("meal")),
+        ("last_water", "last_water", frozenset({"event:water"}), _last("water")),
         ("last_walk", "last_walk", frozenset({"event:walk"}), _last_walk),
         ("last_toilet", "last_toilet", frozenset({"event:toilet"}), _last("toilet")),
         ("last_medication", "last_medication", frozenset({"event:medication"}), _last("medication")),

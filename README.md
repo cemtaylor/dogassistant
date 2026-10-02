@@ -5,7 +5,8 @@ Dog Assistant is a local-first Home Assistant custom integration for tracking da
 ## Features
 
 - One Home Assistant device and dashboard card per dog.
-- Meals, walks, toilet events, medication doses, weight, and categorized notes.
+- One-tap meals, water refreshes, toilet events, and walks, plus medication doses, weight, treats, and notes.
+- A shared training-command glossary with each cue's meaning and notes.
 - Medication schedules, vaccination history, appointments, insurance, registration, vet, and emergency information.
 - Automatic caregiver attribution from the Home Assistant user.
 - Private PDF/image uploads and portable ZIP exports.
@@ -39,13 +40,27 @@ Equivalent YAML:
 ```yaml
 type: custom:dogassistant-card
 dog: DOG_ID_SELECTED_BY_THE_EDITOR
+quick_actions:
+  - action: meal
+    food_id: OPTIONAL_SAVED_FOOD_ID
+  - action: water
+  - action: pee
+  - action: poo
+  - action: walk
+tabs:
+  - overview
+  - timeline
+  - training
 ```
+
+The graphical editor can choose and reorder quick actions, select the saved food portion used by the one-tap Meal action, and choose visible tabs. The household-visible Training tab is a shared glossary of commands and meanings; administrators can add or remove entries. Meal, Water, Pee, and Poo log immediately and offer a short Undo action. Other actions keep their detail forms.
 
 ## Actions
 
 All actions accept a Dog Assistant device target in the automation editor. They also accept `dog_id` for programmatic calls.
 
 - `dogassistant.log_meal`
+- `dogassistant.log_water`
 - `dogassistant.log_treat`
 - `dogassistant.start_walk`
 - `dogassistant.end_walk`
@@ -72,11 +87,17 @@ actions:
 
 Import [`blueprints/automation/dogassistant_attention.yaml`](blueprints/automation/dogassistant_attention.yaml) using its raw GitHub URL. It triggers when a selected Dog Assistant attention sensor turns on and runs a notification action sequence that you provide.
 
+## Physical and Matter buttons
+
+Import [`blueprints/automation/dogassistant_button.yaml`](blueprints/automation/dogassistant_button.yaml) to map any Home Assistant trigger to one Dog Assistant care action. Select the button event and press type, dog, action, and a source label such as `Kitchen button`. Create one automation from the blueprint for each button or press type you want to map.
+
+Matter buttons normally appear as event entities in Home Assistant. Select the button's **Event received** trigger and the desired event type in the blueprint; Dog Assistant does not connect to Matter directly. The blueprint includes a two-second cooldown to ignore button bounce.
+
 ## Private data and backups
 
 Structured records live in Home Assistant's `.storage` data and uploaded documents live under `.storage/dogassistant/documents`. Document routes require Home Assistant authentication. Files are not separately encrypted, so protect Home Assistant host access and backups appropriately.
 
-Authenticated non-admin household users can view the care overview and timeline and log daily care. Home Assistant administrator rights are required to edit profiles and structured records, delete history, upload or delete documents, and export the complete dataset. Non-admin card responses omit documents, appointments, vaccinations, and sensitive profile fields.
+Authenticated non-admin household users can view the care overview and timeline, log daily care, and undo an event they created within 30 seconds. Home Assistant administrator rights are required to edit profiles and structured records, delete older history, upload or delete documents, and export the complete dataset. Non-admin card responses omit documents, appointments, vaccinations, and sensitive profile fields.
 
 To keep resource use bounded, Dog Assistant retains at most 50,000 care events per household and automatically drops the oldest event when that limit is exceeded. Document storage is limited to 200 files and 50 MiB in total, with a 10 MiB limit per file. Export before reaching the event limit if you need a permanent external archive.
 

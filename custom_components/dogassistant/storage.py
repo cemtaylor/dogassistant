@@ -11,6 +11,7 @@ from uuid import uuid4
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.storage import Store
+from homeassistant.util import dt as dt_util
 
 from .const import (
     DEFAULT_SETTINGS,
@@ -21,7 +22,7 @@ from .const import (
     STORAGE_MINOR_VERSION,
     STORAGE_VERSION,
 )
-from .models import new_dog, utcnow_iso
+from .models import new_dog, parse_datetime, utcnow_iso
 
 
 class DogAssistantManager:
@@ -54,7 +55,7 @@ class DogAssistantManager:
         self.data.setdefault("events", [])
         migrated = False
         for dog in self.data["dogs"].values():
-            for kind in ("foods", "treats"):
+            for kind in ("foods", "treats", "commands"):
                 if kind not in dog:
                     dog[kind] = []
                     migrated = True
@@ -152,6 +153,22 @@ class DogAssistantManager:
                     await self._async_commit({"kind": f"event:{removed['type']}", "dog_ids": removed["dog_ids"]})
                     return True
             return False
+
+    async def async_undo_event(self, event_id: str, user_id: str, max_age_seconds: int = 30) -> str:
+        """Undo a newly created event owned by a household user."""
+        async with self._lock:
+            for index, event in enumerate(self.data["events"]):
+                if event["id"] != event_id:
+                    continue
+                if event.get("created_by_user_id") != user_id:
+                    return "forbidden"
+                created_at = parse_datetime(event.get("created_at"))
+                if created_at is None or (dt_util.utcnow() - created_at).total_seconds() > max_age_seconds:
+                    return "expired"
+                removed = self.data["events"].pop(index)
+                await self._async_commit({"kind": f"event:{removed['type']}", "dog_ids": removed["dog_ids"]})
+                return "deleted"
+            return "not_found"
 
     async def async_upsert_record(self, dog_id: str, kind: str, record: dict[str, Any]) -> dict[str, Any]:
         """Create or update a structured dog record."""

@@ -91,6 +91,7 @@ async def _add_event(
             "dog_ids": dog_ids,
             "occurred_at": occurred_at or utcnow_iso(),
             "caregiver": await _caregiver(hass, call),
+            "created_by_user_id": call.context.user_id,
             "notes": call.data.get("notes", ""),
             "data": payload,
         }
@@ -114,6 +115,10 @@ async def _log_meal(hass: HomeAssistant, call: ServiceCall) -> None:
 async def _log_treat(hass: HomeAssistant, call: ServiceCall) -> None:
     payload = {key: call.data.get(key) for key in ("treat", "amount", "unit") if call.data.get(key) is not None}
     await _add_event(hass, call, "treat", payload)
+
+
+async def _log_water(hass: HomeAssistant, call: ServiceCall) -> None:
+    await _add_event(hass, call, "water", {})
 
 
 async def _start_walk(hass: HomeAssistant, call: ServiceCall) -> None:
@@ -224,6 +229,7 @@ def async_register_services(hass: HomeAssistant) -> None:
                 vol.Optional("unit", default="pieces"): vol.In(["pieces", "g"]),
             },
         ),
+        "log_water": (_log_water, {}),
         "start_walk": (
             _start_walk,
             {vol.Optional("activity", default="walk"): vol.In(["walk", "run", "hike", "play", "training"])},
@@ -309,6 +315,7 @@ def async_unregister_services(hass: HomeAssistant) -> None:
     for name in (
         "log_meal",
         "log_treat",
+        "log_water",
         "start_walk",
         "end_walk",
         "log_walk",

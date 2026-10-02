@@ -7,6 +7,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.util import dt as dt_util
 
 from .const import CARE_EVENT_TYPES, DOMAIN, RECORD_KINDS
 from .models import attention_items, parse_datetime
@@ -31,6 +32,11 @@ def _manager(hass: HomeAssistant) -> DogAssistantManager:
 
 def _send_not_found(connection: websocket_api.ActiveConnection, msg_id: int, noun: str) -> None:
     connection.send_error(msg_id, "not_found", f"{noun} was not found")
+
+
+def _public_event(event: dict[str, Any]) -> dict[str, Any]:
+    """Return an event without internal ownership metadata."""
+    return {key: value for key, value in event.items() if key != "created_by_user_id"}
 
 
 def _redact_dog_for_non_admin(dog: dict[str, Any]) -> dict[str, Any]:
@@ -94,7 +100,7 @@ async def ws_list_events(hass: HomeAssistant, connection: websocket_api.ActiveCo
     ]
     events.sort(key=lambda event: event.get("occurred_at", ""), reverse=True)
     start = msg["cursor"]
-    page = events[start : start + msg["limit"]]
+    page = [_public_event(event) for event in events[start : start + msg["limit"]]]
     connection.send_result(
         msg["id"], {"items": page, "next_cursor": start + len(page) if start + len(page) < len(events) else None}
     )
@@ -171,7 +177,7 @@ async def ws_upsert_event(hass: HomeAssistant, connection: websocket_api.ActiveC
             return
     else:
         result = await manager.async_add_event({"type": msg["event_type"], **event_data})
-    connection.send_result(msg["id"], result)
+    connection.send_result(msg["id"], _public_event(result))
 
 
 @websocket_api.websocket_command({vol.Required("type"): "dogassistant/delete_event", vol.Required("event_id"): SAFE_ID})
@@ -181,6 +187,68 @@ async def ws_delete_event(hass: HomeAssistant, connection: websocket_api.ActiveC
     """Delete a care event."""
     if not await _manager(hass).async_delete_event(msg["event_id"]):
         _send_not_found(connection, msg["id"], "Event")
+        return
+    connection.send_result(msg["id"], {"deleted": True})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "dogassistant/log_routine_event",
+        vol.Required("dog_id"): SAFE_ID,
+        vol.Required("action"): vol.In(["meal", "water", "pee", "poo"]),
+        vol.Optional("food_id"): SAFE_ID,
+    }
+)
+@websocket_api.async_response
+async def ws_log_routine_event(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
+) -> None:
+    """Log an immediate daily-care event and return its ID for safe undo."""
+    manager = _manager(hass)
+    dog = manager.data["dogs"].get(msg["dog_id"])
+    if dog is None:
+        _send_not_found(connection, msg["id"], "Dog")
+        return
+
+    action = msg["action"]
+    event_type = "toilet" if action in {"pee", "poo"} else action
+    data: dict[str, Any] = {}
+    if action == "meal" and (food_id := msg.get("food_id")):
+        food = next((item for item in dog.get("foods", []) if item.get("id") == food_id), None)
+        if food:
+            data = {"food": food["name"], "amount": food["portion_grams"], "unit": "g"}
+    elif action in {"pee", "poo"}:
+        data = {"kind": "urine" if action == "pee" else "stool"}
+
+    event = await manager.async_add_event(
+        {
+            "type": event_type,
+            "dog_ids": [msg["dog_id"]],
+            "occurred_at": dt_util.utcnow().isoformat(),
+            "caregiver": connection.user.name,
+            "created_by_user_id": connection.user.id,
+            "notes": "",
+            "data": EVENT_DATA_SCHEMAS[event_type](data),
+        }
+    )
+    connection.send_result(msg["id"], _public_event(event))
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "dogassistant/undo_event", vol.Required("event_id"): SAFE_ID}
+)
+@websocket_api.async_response
+async def ws_undo_event(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Undo an event just created by the current user."""
+    result = await _manager(hass).async_undo_event(msg["event_id"], connection.user.id)
+    if result == "not_found":
+        _send_not_found(connection, msg["id"], "Event")
+        return
+    if result == "forbidden":
+        connection.send_error(msg["id"], "unauthorized", "You can only undo an event you just logged")
+        return
+    if result == "expired":
+        connection.send_error(msg["id"], "expired", "The undo period has expired")
         return
     connection.send_result(msg["id"], {"deleted": True})
 
@@ -257,6 +325,8 @@ def async_register_websocket_commands(hass: HomeAssistant) -> None:
         ws_update_profile,
         ws_upsert_event,
         ws_delete_event,
+        ws_log_routine_event,
+        ws_undo_event,
         ws_upsert_record,
         ws_delete_record,
         ws_subscribe,

@@ -36,6 +36,7 @@
   "entity": {
     "sensor": {
       "last_meal": {"name": "Last meal"},
+      "last_water": {"name": "Last water refresh"},
       "last_walk": {"name": "Last walk"},
       "last_toilet": {"name": "Last toilet"},
       "last_medication": {"name": "Last medication"},

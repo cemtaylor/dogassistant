@@ -2,6 +2,7 @@
   "entity": {
     "sensor": {
       "last_meal": {"default": "mdi:food-drumstick"},
+      "last_water": {"default": "mdi:water"},
       "last_walk": {"default": "mdi:walk"},
       "last_toilet": {"default": "mdi:emoticon-poop"},
       "last_medication": {"default": "mdi:pill"},
@@ -21,6 +22,7 @@
   },
   "services": {
     "log_meal": "mdi:food-drumstick",
+    "log_water": "mdi:water",
     "start_walk": "mdi:walk",
     "end_walk": "mdi:stop-circle-outline",
     "log_walk": "mdi:map-marker-distance",

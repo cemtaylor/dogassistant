@@ -80,6 +80,14 @@ SCHEDULE_SCHEMA = vol.Schema(
 )
 
 RECORD_SCHEMAS = {
+    "commands": vol.Schema(
+        {
+            vol.Optional("id"): SAFE_ID,
+            vol.Required("command"): SHORT_TEXT,
+            vol.Required("meaning"): LONG_TEXT,
+            vol.Optional("notes"): LONG_TEXT,
+        }
+    ),
     "foods": vol.Schema(
         {
             vol.Optional("id"): SAFE_ID,
@@ -144,6 +152,7 @@ EVENT_DATA_SCHEMAS = {
             vol.Optional("unit"): SHORT_TEXT,
         }
     ),
+    "water": vol.Schema({}),
     "treat": vol.Schema(
         {
             vol.Optional("treat"): SHORT_TEXT,
