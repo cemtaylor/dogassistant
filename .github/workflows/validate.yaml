@@ -34,4 +34,4 @@ jobs:
           python-version: "3.14"
       - run: pip install "homeassistant==2026.8.0" pytest pytest-asyncio ruff
       - run: ruff check .
-      - run: pytest -q
+      - run: python -m pytest -q
