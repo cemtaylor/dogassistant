@@ -1,14 +1,14 @@
-const DOGASSISTANT_VERSION = "0.3.0";
+const DOGASSISTANT_VERSION = "0.3.1";
 const DEFAULT_QUICK_ACTIONS = ["meal", "water", "pee", "poo", "walk"].map((action) => ({ action }));
 const DEFAULT_TABS = ["overview", "timeline", "training"];
 const LEGACY_QUICK_ACTIONS = ["meal", "treat", "weight", "pee", "poo", "medication", "walk", "past-walk", "note"].map((action) => ({ action }));
 const LEGACY_TABS = ["overview", "timeline", "training", "records", "schedule", "documents"];
 const ACTION_LABELS = {
-  meal: "Meal", water: "Water", pee: "Pee", poo: "Poo", walk: "Walk",
+  meal: "Meal", "quick-meal": "Quick meal", water: "Water", pee: "Pee", poo: "Poo", walk: "Walk",
   treat: "Treat", medication: "Medication", weight: "Weight", "past-walk": "Past walk", note: "Note",
 };
 const ACTION_ICONS = {
-  meal: "🍽️", water: "🚰", pee: "💧", poo: "💩", walk: "🦮",
+  meal: "🍽️", "quick-meal": "⚡🍽️", water: "🚰", pee: "💧", poo: "💩", walk: "🦮",
   treat: "🦴", medication: "💊", weight: "⚖️", "past-walk": "🕘", note: "📝",
 };
 
@@ -364,8 +364,11 @@ class DogAssistantCard extends HTMLElement {
   }
 
   async _action(action, element = null) {
-    if (["meal", "water", "pee", "poo"].includes(action)) {
-      return this._logRoutine(action, element?.dataset.foodId);
+    if (action === "quick-meal") {
+      return this._logRoutine("meal", element?.dataset.foodId);
+    }
+    if (["water", "pee", "poo"].includes(action)) {
+      return this._logRoutine(action);
     }
     if (action === "walk") {
       const service = this._activeWalk() ? "end_walk" : "start_walk";
@@ -373,6 +376,7 @@ class DogAssistantCard extends HTMLElement {
       return;
     }
     if (action === "past-walk") return this._walkDialog();
+    if (action === "meal") return this._careDialog("meal", null, element?.dataset.foodId);
     if (action === "profile") return this._profileDialog();
     if (action === "upload") return this._uploadDialog();
     if (action === "export") return this._download(`/api/dogassistant/export?dog_id=${encodeURIComponent(this._dog.id)}`, "dogassistant-export.zip");
@@ -479,13 +483,13 @@ class DogAssistantCard extends HTMLElement {
     dialog.showModal();
   }
 
-  _careDialog(kind, toiletKind = null) {
+  _careDialog(kind, toiletKind = null, selectedFoodId = null) {
     const common = `<label class="wide">Notes<textarea name="notes"></textarea></label>`;
     const when = (label = "When") => `<label class="wide">${label}<div class="time-range"><input name="minutes_ago" type="range" min="0" max="1440" step="15" value="0" data-range-kind="ago" data-range-output="entry-time" data-time-output="entry-local-time"><div class="range-caption"><output id="entry-time" class="range-value">Now</output><span id="entry-local-time" class="range-local"></span></div></div></label>`;
     const toiletConditions = toiletKind === "urine"
       ? `<option value="normal">Normal</option><option value="frequent">Frequent</option><option value="dark">Dark</option><option value="blood">Blood</option><option value="difficulty">Difficulty</option><option value="accident">Accident</option>`
       : `<option value="normal">Normal</option><option value="soft">Soft</option><option value="diarrhoea">Diarrhoea</option><option value="constipated">Constipated</option><option value="blood">Blood</option><option value="mucus">Mucus</option>`;
-    const foodPresets = (this._dog.foods || []).map((food) => `<button type="button" data-food-preset="${esc(food.name)}" data-food-amount="${Number(food.portion_grams)}">${esc(food.name)} · ${Number(food.portion_grams)} g</button>`).join("");
+    const foodPresets = (this._dog.foods || []).map((food) => `<button type="button" data-food-preset="${esc(food.name)}" data-food-amount="${Number(food.portion_grams)}" class="${food.id === selectedFoodId ? "selected" : ""}">${esc(food.name)} · ${Number(food.portion_grams)} g</button>`).join("");
     const foodPicker = `<div class="wide"><div class="form-label">Food portions</div><div class="preset-grid">${foodPresets || `<span class="preset-empty">No saved portions</span>`}<button type="button" class="add-preset" data-add-food-from-meal>＋ Add portion</button></div></div>`;
     const treatPresets = (this._dog.treats || []).map((treat) => `<button type="button" data-treat-preset="${esc(treat.name)}" data-treat-amount="${Number(treat.amount)}" data-treat-unit="${esc(treat.unit || "pieces")}">${esc(treat.name)} · ${esc(this._quantity(Number(treat.amount), treat.unit || "pieces"))}</button>`).join("");
     const treatPicker = `<div class="wide"><div class="form-label">Treat portions</div><div class="preset-grid">${treatPresets || `<span class="preset-empty">No saved treats</span>`}<button type="button" class="add-preset" data-add-treat-from-log>＋ Add treat</button></div></div>`;
@@ -509,6 +513,16 @@ class DogAssistantCard extends HTMLElement {
       if (data.dose) data.dose = Number(data.dose);
       await this._call(({ meal: "log_meal", treat: "log_treat", toilet: "log_toilet", weight: "log_weight", note: "add_note", medication: "record_medication" })[kind], data);
     });
+    if (kind === "meal" && selectedFoodId) {
+      const food = (this._dog.foods || []).find((item) => item.id === selectedFoodId);
+      const dialog = this.shadowRoot.querySelector("#editor");
+      if (food && dialog) {
+        dialog.querySelector('[name="food"]').value = food.name;
+        const amount = dialog.querySelector('[name="amount"]');
+        amount.value = food.portion_grams;
+        amount.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    }
   }
 
   _walkDialog() {
@@ -680,7 +694,7 @@ class DogAssistantCardEditor extends HTMLElement {
     const tabs = new Set(Array.isArray(this._config.tabs) && this._config.tabs.length
       ? this._config.tabs
       : (this._config.tabs === undefined ? LEGACY_TABS : DEFAULT_TABS));
-    const meal = actions.find((item) => item.action === "meal");
+    const quickMeal = actions.find((item) => item.action === "quick-meal");
     this.shadowRoot.innerHTML = `<style>
       :host{display:block;padding:12px}.row{margin-bottom:16px}label,.heading{display:block;margin-bottom:5px;font-weight:600}select,input[type=text]{box-sizing:border-box;width:100%;padding:9px;border:1px solid var(--divider-color);border-radius:7px;background:var(--card-background-color);color:var(--primary-text-color)}
       .action-row{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:5px;padding:6px 0;border-bottom:1px solid var(--divider-color)}button{border:1px solid var(--divider-color);border-radius:7px;padding:6px 9px;background:transparent;color:var(--primary-text-color);cursor:pointer}.add{display:flex;gap:6px;margin-top:8px}.add select{flex:1}.checks{display:grid;grid-template-columns:1fr 1fr;gap:8px}.checks label{font-weight:400}.hint{font-size:.82rem;color:var(--secondary-text-color);margin-top:5px}
@@ -688,7 +702,7 @@ class DogAssistantCardEditor extends HTMLElement {
     <div class="row"><label for="dog">Dog</label><select id="dog"><option value="">Select a dog</option>${(this._dogs || []).map((dog) => `<option value="${esc(dog.id)}" ${dog.id === this._config.dog ? "selected" : ""}>${esc(dog.name)}</option>`).join("")}</select></div>
     <div class="row"><label for="title">Optional card title</label><input id="title" type="text" value="${esc(this._config.title || "")}"></div>
     <div class="row"><span class="heading">Quick actions</span>${actions.map((item, index) => `<div class="action-row"><span>${ACTION_ICONS[item.action]} ${esc(ACTION_LABELS[item.action])}</span><button data-move="${index}:-1" title="Move up" ${index === 0 ? "disabled" : ""}>↑</button><button data-move="${index}:1" title="Move down" ${index === actions.length - 1 ? "disabled" : ""}>↓</button><button data-remove="${index}" title="Remove">✕</button></div>`).join("")}<div class="add"><select id="add-action"><option value="">Add an action…</option>${available.map((action) => `<option value="${action}">${esc(ACTION_LABELS[action])}</option>`).join("")}</select><button id="add-action-button">Add</button></div></div>
-    ${meal ? `<div class="row"><label for="meal-food">One-tap meal portion</label><select id="meal-food"><option value="">Generic meal</option>${(this._dog?.foods || []).map((food) => `<option value="${esc(food.id)}" ${food.id === meal.food_id ? "selected" : ""}>${esc(food.name)} · ${Number(food.portion_grams)} g</option>`).join("")}</select><div class="hint">Saved food portions are managed in the Records tab.</div></div>` : ""}
+    ${quickMeal ? `<div class="row"><label for="meal-food">Quick meal portion</label><select id="meal-food"><option value="">Generic meal</option>${(this._dog?.foods || []).map((food) => `<option value="${esc(food.id)}" ${food.id === quickMeal.food_id ? "selected" : ""}>${esc(food.name)} · ${Number(food.portion_grams)} g</option>`).join("")}</select><div class="hint">The standard Meal action always opens the detailed form. Saved food portions are managed in Records.</div></div>` : ""}
     <div class="row"><span class="heading">Visible tabs</span><div class="checks">${["overview", "timeline", "training", "records", "schedule", "documents"].map((tab) => `<label><input type="checkbox" data-tab-option="${tab}" ${tabs.has(tab) ? "checked" : ""}> ${tab[0].toUpperCase() + tab.slice(1)}</label>`).join("")}</div></div>`;
     this.shadowRoot.querySelector("#dog").addEventListener("change", async (event) => {
       this._emit({ dog: event.target.value });
@@ -711,8 +725,8 @@ class DogAssistantCardEditor extends HTMLElement {
       if (action) this._emit({ quick_actions: [...this._actions(), { action }] });
     });
     this.shadowRoot.querySelector("#meal-food")?.addEventListener("change", (event) => {
-      const updated = this._actions().map((item) => item.action === "meal"
-        ? { action: "meal", ...(event.target.value ? { food_id: event.target.value } : {}) }
+      const updated = this._actions().map((item) => item.action === "quick-meal"
+        ? { action: "quick-meal", ...(event.target.value ? { food_id: event.target.value } : {}) }
         : item);
       this._emit({ quick_actions: updated });
     });

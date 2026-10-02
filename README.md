@@ -5,7 +5,7 @@ Dog Assistant is a local-first Home Assistant custom integration for tracking da
 ## Features
 
 - One Home Assistant device and dashboard card per dog.
-- One-tap meals, water refreshes, toilet events, and walks, plus medication doses, weight, treats, and notes.
+- Detailed meal logging with saved portions, plus one-tap water refreshes, toilet events, and walks.
 - A shared training-command glossary with each cue's meaning and notes.
 - Medication schedules, vaccination history, appointments, insurance, registration, vet, and emergency information.
 - Automatic caregiver attribution from the Home Assistant user.
@@ -42,7 +42,6 @@ type: custom:dogassistant-card
 dog: DOG_ID_SELECTED_BY_THE_EDITOR
 quick_actions:
   - action: meal
-    food_id: OPTIONAL_SAVED_FOOD_ID
   - action: water
   - action: pee
   - action: poo
@@ -53,7 +52,7 @@ tabs:
   - training
 ```
 
-The graphical editor can choose and reorder quick actions, select the saved food portion used by the one-tap Meal action, and choose visible tabs. The household-visible Training tab is a shared glossary of commands and meanings; administrators can add or remove entries. Meal, Water, Pee, and Poo log immediately and offer a short Undo action. Other actions keep their detail forms.
+The graphical editor can choose and reorder actions and visible tabs. The standard Meal action opens the full form for a saved portion or custom food, amount, time, and notes. An optional Quick meal action can be added for one-tap feeding with a configured saved portion. Water, Pee, and Poo log immediately and offer a short Undo action. The household-visible Training tab is a shared glossary of commands and meanings; administrators can add or remove entries.
 
 ## Actions
 
