@@ -34,6 +34,32 @@
     }
   },
   "entity": {
+    "button": {
+      "fed": {
+        "name": "Mark as fed"
+      },
+      "water": {
+        "name": "Refresh water"
+      },
+      "treat": {
+        "name": "Log treat"
+      },
+      "pee": {
+        "name": "Log pee"
+      },
+      "poo": {
+        "name": "Log poo"
+      },
+      "start_walk": {
+        "name": "Start walk"
+      },
+      "end_walk": {
+        "name": "End walk"
+      },
+      "log_walk": {
+        "name": "Log completed walk"
+      }
+    },
     "sensor": {
       "last_meal": {"name": "Last meal"},
       "last_water": {"name": "Last water refresh"},

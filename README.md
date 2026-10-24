@@ -10,7 +10,7 @@ Dog Assistant is a local-first Home Assistant custom integration for tracking da
 - Medication schedules, vaccination history, appointments, insurance, registration, vet, and emergency information.
 - Automatic caregiver attribution from the Home Assistant user.
 - Private PDF/image uploads and portable ZIP exports.
-- Native sensors, binary sensors, calendar, image entity, and automation actions.
+- Native sensors, binary sensors, care buttons, calendar, image entity, and automation actions.
 - Everything is stored locally in the Home Assistant configuration and retained until you delete it.
 
 Dog Assistant targets Home Assistant 2026.8 or newer.
@@ -53,6 +53,34 @@ tabs:
 ```
 
 The graphical editor can choose and reorder actions and visible tabs. The standard Meal action opens the full form for a saved portion or custom food, amount, time, and notes. An optional Quick meal action can be added for one-tap feeding with a configured saved portion. Water, Pee, and Poo log immediately and offer a short Undo action. The household-visible Training tab is a shared glossary of commands and meanings; administrators can add or remove entries.
+
+## Per-dog care buttons
+
+Each dog device exposes **Mark as fed**, **Refresh water**, **Log treat**, **Log pee**, **Log poo**, **Start walk**, **End walk**, and **Log completed walk** buttons. In an automation, select **Button: Press** and choose the dog's care button. A physical button or any sensor can supply the trigger.
+
+Mark as fed records a meal at the current time without food or portion details. Log completed walk records a walk at the current time without a measured duration or distance. Use the actions below when you need those details. Start walk and End walk measure elapsed time; starting an already active walk or ending without an active walk raises an error.
+
+For example, use your physical button's trigger with this action (replace the example entity with the one on your dog's device):
+
+```yaml
+actions:
+  - action: button.press
+    target:
+      entity_id: button.rover_mark_as_fed
+```
+
+For sensor-based walk detection, trigger Start walk when your sensor detects departure and End walk when it detects return. Add conditions appropriate to your sensors to avoid repeated or unrelated detections. Alternatively, a sensor that detects an already completed walk can call:
+
+```yaml
+actions:
+  - action: dogassistant.log_walk
+    data:
+      dog_id: YOUR_DOG_ID
+      duration: 30
+      caregiver: Walk sensor
+```
+
+Reload the integration or restart Home Assistant after updating to create the new button entities.
 
 ## Actions
 

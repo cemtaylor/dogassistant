@@ -6,7 +6,7 @@ from typing import Final
 
 DOMAIN: Final = "dogassistant"
 NAME: Final = "Dog Assistant"
-PLATFORMS: Final = ["binary_sensor", "calendar", "image", "sensor"]
+PLATFORMS: Final = ["binary_sensor", "button", "calendar", "image", "sensor"]
 
 STORAGE_KEY: Final = f"{DOMAIN}.data"
 STORAGE_VERSION: Final = 1
